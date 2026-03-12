@@ -1,0 +1,72 @@
+================================================================================
+BULK IMAGE PROCESSING & ANALYSIS PROMPT
+================================================================================
+
+TASK: Process 5-6 WhatsApp screenshot images autonomously
+
+SETUP:
+- Images are in current directory named like:
+  * WhatsApp Image 2026-03-01 at 10.10.21 AM.jpeg
+  * WhatsApp Image 2026-03-02 at 15.45.33 PM.jpeg
+  [etc]
+
+ACTIONS TO PERFORM:
+
+1. AUTO-RECOGNIZE PATTERN
+   - Parse filename timestamps (extract date & time)
+   - Group images by date
+   - Flag if any are duplicates or near-duplicates
+
+2. ANALYZE CONTENT
+   - Extract text from each image (OCR if needed)
+   - Categorize content type (screenshot, chart, diagram, conversation, etc)
+   - Identify any data, tables, or structured information
+   - Flag sensitive information (if any)
+
+3. METADATA GENERATION
+   - Create JSON metadata file: image_metadata.json
+   - Include: filename, timestamp, content_type, extracted_text, analysis
+   - Example structure:
+     {
+       "images": [
+         {
+           "filename": "WhatsApp Image 2026-03-01 at 10.10.21 AM.jpeg",
+           "timestamp": "2026-03-01T10:10:21",
+           "content_type": "screenshot|chart|conversation|diagram",
+           "extracted_text": "...",
+           "analysis": "...",
+           "is_sensitive": false
+         }
+       ]
+     }
+
+4. CREATE SUMMARY REPORT
+   - Total images processed: N
+   - Date range: YYYY-MM-DD to YYYY-MM-DD
+   - Content breakdown (types)
+   - Key findings or insights
+   - Save as: image_analysis_report.txt
+
+5. OPTIONAL: CREATE DATASET SCHEMA
+   If images contain data tables/charts:
+   - Extract structured data
+   - Generate CSV if applicable
+   - Create data dictionary
+
+6. OUTPUT STRUCTURE
+   Create ./processed_images/ directory with:
+   ├── image_metadata.json
+   ├── image_analysis_report.txt
+   └── extracted_data.csv (if applicable)
+
+DO NOT modify or rename original images.
+DO preserve all original files.
+================================================================================
+
+CLAUDE CLI COMMAND:
+claude code --upload-glob "*.jpeg" --auto-recognize-type --context "Process WhatsApp screenshot images - extract timestamps, analyze content, generate metadata JSON and summary report"
+
+OR if uploading manually:
+1. In Claude app, attach all 5-6 images
+2. Run this prompt
+3. Claude will auto-process and output results

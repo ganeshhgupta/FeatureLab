@@ -1,9 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-* {
-  box-sizing: border-box;
+@theme {
+  --color-navy-900: #0d1117;
+  --color-navy-800: #0e1420;
+  --color-navy-600: #161b22;
+  --color-navy-500: #1e2d3d;
 }
 
 body {
@@ -12,22 +13,12 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0e1420;
-}
-::-webkit-scrollbar-thumb {
-  background: #30363d;
-  border-radius: 3px;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0e1420; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
 
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); }
   50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.8); }
 }
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }

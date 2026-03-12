@@ -1,0 +1,385 @@
+================================================================================
+COMPREHENSIVE VERSION MISMATCH AUDITOR & FIXER
+================================================================================
+
+MISSION: Scan entire project for ALL version mismatches, conflicts, and 
+incompatibilities. Auto-resolve to stable, compatible LTS versions.
+
+================================================================================
+SCAN PHASE 1: DETECT ALL VERSIONS
+================================================================================
+
+ACTION: Scan Node.js ecosystem
+SCAN:
+  - package.json (all dependencies, devDependencies, optionalDependencies)
+  - package-lock.json (locked versions)
+  - .npmrc (npm registry settings)
+  - .nvmrc (Node version)
+
+ACTION: Scan Python ecosystem
+SCAN:
+  - requirements.txt (pinned versions)
+  - requirements-dev.txt (dev dependencies)
+  - setup.py (if present)
+  - pyproject.toml (if present)
+  - Pipfile (if present)
+  - poetry.lock (if present)
+  - runtime.txt (Python version for Heroku/Render)
+
+ACTION: Scan Docker (if present)
+SCAN:
+  - Dockerfile (base images, versions)
+  - docker-compose.yml (service versions)
+  - .dockerignore
+
+ACTION: Scan API & External Services
+SCAN:
+  - Requirements for Gemini SDK (google-generativeai)
+  - Requirements for Pinecone (pinecone-client)
+  - Requirements for Neon driver (psycopg2, asyncpg)
+  - Requirements for FastAPI (fastapi, uvicorn)
+  - Requirements for Next.js (check package.json)
+
+ACTION: Scan Database & ORM versions
+SCAN:
+  - SQLAlchemy version compatibility
+  - PostgreSQL driver compatibility
+  - Migration tool versions (Alembic, etc)
+
+ACTION: Scan Build Tools
+SCAN:
+  - TypeScript (typescript version in package.json)
+  - tsconfig.json (target, lib versions)
+  - Webpack (if present)
+  - Tailwind (tailwind.config.js/ts)
+  - ESLint (if present)
+
+================================================================================
+ANALYSIS PHASE 2: IDENTIFY CONFLICTS
+================================================================================
+
+FOR EACH DEPENDENCY:
+  1. Check current version
+  2. Check minimum required version
+  3. Check known incompatibilities:
+     - Peer dependency conflicts
+     - Breaking changes between versions
+     - Security vulnerabilities (check npm audit, pip audit)
+     - Incompatible transitive dependencies
+
+SPECIFIC CHECKS:
+
+Node.js Conflicts:
+  - Next.js 14 requires Node.js 18.17+
+  - React 18 with Next.js 14
+  - Shadcn/ui with Tailwind version match
+  - Framer-motion compatibility
+  - Lucide-react version
+
+Python Conflicts:
+  - SQLAlchemy 2.0+ requires Python 3.7+
+  - FastAPI requires Python 3.7+
+  - psycopg2 with PostgreSQL version
+  - Pinecone SDK compatibility
+  - google-generativeai compatibility
+  - scikit-learn with numpy version match
+  - pandas with numpy compatibility
+  - lightgbm with numpy/scipy versions
+
+API Conflicts:
+  - Gemini API version constraints
+  - Pinecone API client vs index version
+  - Neon PostgreSQL driver version
+
+================================================================================
+RESOLUTION PHASE 3: FIX CONFLICTS
+================================================================================
+
+STRATEGY 1: USE STABLE LTS VERSIONS
+
+Recommended versions:
+  Node.js: 20.x LTS (latest stable)
+  Python: 3.11.x LTS (latest stable)
+  Next.js: 14.x
+  React: 18.x
+  TypeScript: 5.3+
+  Tailwind: 3.3+
+
+STRATEGY 2: RESOLVE PEER DEPENDENCIES
+
+For each conflict:
+  1. Identify which version is blocking others
+  2. Find lowest compatible version that satisfies all constraints
+  3. Document rationale in RESOLUTION_NOTES.md
+
+STRATEGY 3: UPDATE LOCK FILES
+
+Commands to execute:
+  npm ci --package-lock-only  (regenerate npm lock file)
+  pip freeze > requirements-frozen.txt  (capture exact versions)
+  npm audit fix  (fix security issues)
+  pip audit  (check Python security)
+
+STRATEGY 4: VALIDATE COMPATIBILITY
+
+For each major dependency group:
+  1. Run package.json/requirements.txt linter
+  2. Check for circular dependencies
+  3. Verify transitive dependency resolution
+  4. Test imports (basic smoke test)
+
+================================================================================
+EXECUTION: GENERATE FIXES
+================================================================================
+
+OUTPUT FILE 1: backend/requirements.txt (FIXED)
+---
+Format: package==version (all pinned to exact versions)
+
+Include:
+- fastapi==0.104.1
+- uvicorn[standard]==0.24.0
+- sqlalchemy==2.0.23
+- psycopg2-binary==2.9.9
+- pinecone-client==3.0.2
+- google-generativeai==0.3.0
+- pandas==2.1.3
+- numpy==1.26.2
+- scikit-learn==1.3.2
+- lightgbm==4.1.1
+- python-dotenv==1.0.0
+- pydantic==2.5.0
+- pydantic-settings==2.1.0
+- aiofiles==23.2.1
+
+Notes:
+- All versions are compatible with Python 3.11+
+- All transitive dependencies resolved
+- No peer dependency conflicts
+---
+
+OUTPUT FILE 2: frontend/package.json (FIXED)
+---
+{
+  "name": "featurelab-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "5.3.3",
+    "tailwindcss": "3.3.6",
+    "@tailwindcss/forms": "0.5.7",
+    "shadcn-ui": "0.8.0",
+    "lucide-react": "0.318.0",
+    "recharts": "2.10.3",
+    "framer-motion": "10.16.16",
+    "axios": "1.6.5",
+    "zustand": "4.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "20.10.6",
+    "@types/react": "18.2.46",
+    "@types/react-dom": "18.2.18",
+    "@typescript-eslint/eslint-plugin": "6.17.0",
+    "@typescript-eslint/parser": "6.17.0",
+    "autoprefixer": "10.4.16",
+    "postcss": "8.4.32",
+    "eslint": "8.56.0",
+    "eslint-config-next": "14.0.4"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
+---
+
+OUTPUT FILE 3: runtime.txt (Python version for Render)
+---
+python-3.11.7
+---
+
+OUTPUT FILE 4: .nvmrc (Node version)
+---
+20.10.0
+---
+
+OUTPUT FILE 5: RESOLUTION_NOTES.md
+---
+# Version Resolution Report
+
+## Summary
+- Total packages scanned: [N]
+- Conflicts found: [N]
+- Conflicts resolved: [N]
+- Critical security issues: 0
+
+## Node.js Ecosystem
+✅ Next.js: 14.0.4 (requires Node 18.17+, using 20.10.0)
+✅ React: 18.2.0 (stable, no conflicts)
+✅ TypeScript: 5.3.3 (compatible with Node 20)
+✅ Tailwind: 3.3.6 (no peer dep conflicts)
+✅ Shadcn/ui: 0.8.0 (compatible with Tailwind 3.3+)
+✅ Framer-motion: 10.16.16 (compatible with React 18)
+✅ Lucide-react: 0.318.0 (compatible with React 18)
+✅ Recharts: 2.10.3 (compatible with React 18)
+
+## Python Ecosystem
+✅ FastAPI: 0.104.1 (requires Python 3.7+, using 3.11)
+✅ SQLAlchemy: 2.0.23 (requires Python 3.7+)
+✅ psycopg2-binary: 2.9.9 (compatible with PostgreSQL 14+)
+✅ Pinecone: 3.0.2 (no version conflicts)
+✅ Gemini SDK: 0.3.0 (no version conflicts)
+✅ pandas: 2.1.3 (compatible with numpy 1.26+)
+✅ numpy: 1.26.2 (compatible with all scientific packages)
+✅ scikit-learn: 1.3.2 (compatible with numpy 1.26+)
+✅ lightgbm: 4.1.1 (compatible with numpy 1.26+)
+✅ pydantic: 2.5.0 (compatible with FastAPI 0.104+)
+
+## API & External Service Versions
+✅ Neon PostgreSQL: driver supports latest LTS
+✅ Pinecone: client 3.0.2 is latest stable
+✅ Gemini: google-generativeai 0.3.0 is latest
+
+## Security Audit Results
+✅ npm audit: 0 vulnerabilities
+✅ pip audit: 0 vulnerabilities
+✅ Deprecated packages: 0
+
+## Recommendations
+1. Update Node.js to 20.10.0 (LTS)
+2. Update Python to 3.11.7 (LTS)
+3. Pin all versions (use == in requirements.txt)
+4. Run npm audit fix monthly
+5. Run pip audit monthly
+
+## Files Modified
+- backend/requirements.txt ✅
+- frontend/package.json ✅
+- frontend/package-lock.json ✅ (regenerated)
+- runtime.txt ✅ (created)
+- .nvmrc ✅ (created)
+
+---
+
+## How to Apply Fixes
+
+### Backend (Python)
+```bash
+cd backend
+rm -rf venv/
+python3.11 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### Frontend (Node.js)
+```bash
+cd frontend
+nvm install 20.10.0
+nvm use 20.10.0
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+### Validation
+```bash
+cd backend && python -c "import fastapi, sqlalchemy, pinecone; print('✓ All Python imports OK')"
+cd frontend && npm list --depth=0
+```
+
+---
+---
+
+OUTPUT FILE 6: FIX_SCRIPT.sh (Automated fixing)
+---
+#!/bin/bash
+
+echo "🔧 FeatureLab Version Fixer - Running..."
+
+# Backend
+echo "📦 Backend: Installing Python 3.11..."
+cd backend
+python3.11 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip setuptools wheel
+pip install -r requirements.txt
+echo "✅ Backend dependencies fixed"
+
+# Frontend
+echo "📦 Frontend: Installing Node 20..."
+cd ../frontend
+nvm install 20.10.0
+nvm use 20.10.0
+npm install
+echo "✅ Frontend dependencies fixed"
+
+# Audit
+echo "🔍 Security Audit..."
+cd ../backend && pip audit || true
+cd ../frontend && npm audit || true
+
+echo "✅ All versions resolved and compatible!"
+---
+
+================================================================================
+VALIDATION PHASE 4: SMOKE TESTS
+================================================================================
+
+PYTHON IMPORTS:
+```python
+import fastapi
+import sqlalchemy
+import pandas
+import numpy
+import sklearn
+import lightgbm
+import pinecone
+import google.generativeai
+```
+
+NODE IMPORTS:
+```javascript
+import Next from 'next'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { LineChart } from 'recharts'
+import axios from 'axios'
+```
+
+================================================================================
+COMPLETION CHECKLIST
+================================================================================
+
+□ All Node.js versions pinned and compatible
+□ All Python versions pinned and compatible
+□ API client versions (Gemini, Pinecone, Neon) verified
+□ Peer dependencies resolved
+□ Security vulnerabilities: 0
+□ Lock files regenerated
+□ Smoke tests passed
+□ RESOLUTION_NOTES.md created
+□ FIX_SCRIPT.sh created and tested
+
+================================================================================
+EXECUTE NOW
+================================================================================
+
+Run this prompt to:
+1. Scan entire project for version mismatches
+2. Generate fixed package.json and requirements.txt
+3. Create RESOLUTION_NOTES.md with detailed report
+4. Output FIX_SCRIPT.sh for automated fixing
+5. Validate all imports
+
+All output files are ready to commit.

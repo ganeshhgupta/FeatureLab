@@ -1,0 +1,289 @@
+================================================================================
+FEATURELAB: EXACT CLAUDE CLI COMMANDS (COPY-PASTE)
+================================================================================
+
+Below are the EXACT commands to run in your terminal/Claude Code.
+Copy and paste each one directly.
+
+================================================================================
+STEP 1: FULL ONE-SHOT BUILD (RECOMMENDED)
+================================================================================
+
+Download featurelab-build.prompt and run:
+
+```
+claude --file featurelab-build.prompt --execute-all --no-confirm --verbose
+```
+
+What this does in ONE command:
+✅ Creates full project structure (backend + frontend)
+✅ Installs all dependencies (npm, pip)
+✅ Initializes Neon PostgreSQL database
+✅ Configures Gemini, Pinecone, Neon
+✅ Starts both servers (FastAPI + Next.js)
+✅ Creates deployment configs
+✅ Shows status report
+
+Time: ~10-15 minutes
+
+---
+
+✅ AFTER STEP 1, your app is:
+- Running locally on http://localhost:3000 (frontend) and http://localhost:8000 (backend)
+- Ready to deploy to Vercel + Render
+- With sample agent run capability
+
+================================================================================
+STEP 2: FIX VERSION MISMATCHES (OPTIONAL BUT RECOMMENDED)
+================================================================================
+
+If you want to audit and fix all version conflicts:
+
+```
+claude --file fix-all-versions.prompt --execute-all
+```
+
+What this does:
+✅ Scans all versions (Node.js, Python, APIs)
+✅ Identifies conflicts
+✅ Generates fixed package.json and requirements.txt
+✅ Creates RESOLUTION_NOTES.md report
+✅ Outputs automated FIX_SCRIPT.sh
+
+Time: ~5 minutes
+
+---
+
+Output files created:
+- backend/requirements.txt (FIXED)
+- frontend/package.json (FIXED)
+- RESOLUTION_NOTES.md (detailed report)
+- FIX_SCRIPT.sh (automated fixer)
+
+================================================================================
+STEP 3: PROCESS BULK IMAGES (OPTIONAL)
+================================================================================
+
+To analyze your 5-6 WhatsApp screenshot images:
+
+OPTION A: Upload via Claude app
+1. Open claude.ai or Claude Code
+2. Attach all 5-6 .jpeg files
+3. Paste this prompt:
+
+---
+I have 5-6 WhatsApp screenshot images named like:
+- WhatsApp Image 2026-03-01 at 10.10.21 AM.jpeg
+- WhatsApp Image 2026-03-02 at 15.45.33 PM.jpeg
+[etc]
+
+Please:
+1. Parse filenames to extract dates and times
+2. Analyze content (OCR, extract text, identify charts)
+3. Categorize each image (screenshot, chart, conversation, diagram)
+4. Generate image_metadata.json with: filename, timestamp, content_type, extracted_text, analysis
+5. Create image_analysis_report.txt with: total images, date range, content breakdown, findings
+6. If any images contain data tables, extract as CSV
+
+Output structure:
+- processed_images/image_metadata.json
+- processed_images/image_analysis_report.txt
+- processed_images/extracted_data.csv
+---
+
+OPTION B: Use Claude Code
+```
+claude code --upload-glob "*.jpeg" --auto-recognize-type --context "Process WhatsApp images - extract timestamps, analyze content, generate metadata JSON and summary report"
+```
+
+Time: ~2-3 minutes
+
+---
+
+Output files created:
+- processed_images/image_metadata.json
+- processed_images/image_analysis_report.txt
+- processed_images/extracted_data.csv (if applicable)
+
+================================================================================
+STEP 4: START DEVELOPMENT SERVERS (IF BUILD FAILED OR YOU WANT TO RESTART)
+================================================================================
+
+Terminal 1 (Backend):
+```
+cd backend
+source venv/bin/activate
+python -m uvicorn main:app --reload --port 8000
+```
+
+Terminal 2 (Frontend):
+```
+cd frontend
+npm run dev
+```
+
+Then visit:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000/health (should return {"status": "healthy"})
+- API Docs: http://localhost:8000/docs
+
+================================================================================
+STEP 5: DEPLOY TO VERCEL + RENDER
+================================================================================
+
+Prerequisites:
+- GitHub account (push code to public repo)
+- Vercel account (vercel.com)
+- Render account (render.com)
+
+Command to push to GitHub:
+```
+git add .
+git commit -m "FeatureLab MVP - Ready to deploy"
+git push origin main
+```
+
+Deploy Frontend (Vercel):
+```
+cd frontend
+vercel --prod
+```
+
+Follow prompts:
+- Connect Vercel to your GitHub
+- Add NEXT_PUBLIC_API_URL env var (point to Render backend URL)
+- Deploy
+
+Deploy Backend (Render):
+1. Visit https://render.com
+2. New Web Service
+3. Connect GitHub repo
+4. Set Build Command: `cd backend && pip install -r requirements.txt`
+5. Set Start Command: `cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
+6. Add Environment Variables:
+   - DATABASE_URL=postgresql://neondb_owner:npg_kYT2ox1tfRFH@ep-proud-cake-adyer1to-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   - PINECONE_API_KEY=pcsk_6um2Ah_7pZ8QtW5YPMcGNfsFHJ9okWP8ZmuF93jQWcUPgXgQka5Uf7a6vwMefkTJGpobif
+   - GEMINI_API_KEY=AIzaSyBRMLbZiwsiOtbKUzLLYxC4TKbiQKmVmH4
+   - PINECONE_INDEX=featurelab-prod
+7. Click Deploy
+
+Time: ~5-10 minutes (waiting for builds)
+
+---
+
+After deployment:
+- Frontend: https://[your-project].vercel.app
+- Backend: https://[your-project]-backend.onrender.com
+- Both auto-redeploy on git push
+
+================================================================================
+STEP 6: TEST THE AGENT
+================================================================================
+
+Terminal:
+```
+curl -X POST http://localhost:8000/api/agent/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataset_path": "sample.csv",
+    "target_column": "click",
+    "feature_columns": ["I1", "I2", "I3", "C1", "C2"],
+    "evaluation_threshold": 0.02,
+    "max_iterations_per_feature": 2
+  }'
+```
+
+Or via UI:
+1. Open http://localhost:3000/dashboard
+2. Upload CSV file
+3. Enter target column (e.g., "click")
+4. Click "Start Feature Engineering"
+5. Watch agent run autonomously
+
+================================================================================
+QUICK REFERENCE: ALL COMMANDS
+================================================================================
+
+Build MVP:
+  claude --file featurelab-build.prompt --execute-all --no-confirm --verbose
+
+Fix versions:
+  claude --file fix-all-versions.prompt --execute-all
+
+Process images:
+  claude code --upload-glob "*.jpeg" --auto-recognize-type
+
+Start backend:
+  cd backend && source venv/bin/activate && uvicorn main:app --reload
+
+Start frontend:
+  cd frontend && npm run dev
+
+Deploy:
+  git push origin main && vercel --prod && (then Render)
+
+Test:
+  curl http://localhost:8000/health
+  http://localhost:3000
+
+Health check:
+  curl http://localhost:8000/api/experiments
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Build fails:
+  claude --file featurelab-build.prompt --execute-all --verbose
+
+Versions mismatch:
+  claude --file fix-all-versions.prompt --execute-all
+
+Backend won't start:
+  cd backend && python -c "from main import app; print('✓')"
+
+Frontend build fails:
+  cd frontend && rm -rf node_modules && npm install && npm run build
+
+Database error:
+  psql postgresql://...neondb... -c "SELECT 1"
+
+API returns 500:
+  cd backend && python -c "from database import init_db, engine; init_db()"
+
+================================================================================
+SUCCESS CHECKLIST
+================================================================================
+
+After running main build command, you should have:
+
+[ ] Backend running on http://localhost:8000
+[ ] Frontend running on http://localhost:3000
+[ ] Landing page loads with animations
+[ ] Dashboard accessible at /dashboard
+[ ] Can upload CSV and run agent
+[ ] Database tables exist (experiments, features)
+[ ] API /health returns 200
+[ ] Vercel config (.vercelrc) created
+[ ] Render config (Procfile, render.yaml) created
+[ ] Ready to deploy
+
+If all checkboxes ✓, you're done! Ready to deploy.
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. Run: claude --file featurelab-build.prompt --execute-all --no-confirm
+2. Wait 10-15 minutes
+3. Visit http://localhost:3000
+4. Test agent with sample CSV
+5. Push to GitHub
+6. Deploy to Vercel + Render
+7. Share your live app!
+
+================================================================================
+
+Questions? Check CLAUDE-CLI-GUIDE.md for detailed docs.
+
+Built with 💜 by FeatureLab | Autonomous ML Feature Engineering
