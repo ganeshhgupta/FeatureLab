@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 import os
 import json
@@ -7,13 +7,14 @@ import re
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+_client = genai.Client(api_key=GEMINI_API_KEY)
+MODEL = "gemini-flash-latest"
 
-def _get_model():
-    return genai.GenerativeModel("gemini-1.5-flash")
+def _generate(prompt: str) -> str:
+    response = _client.models.generate_content(model=MODEL, contents=prompt)
+    return response.text.strip()
 
 def propose_transformations(feature_profile: dict, task: str) -> list:
-    model = _get_model()
     prompt = f"""You are a feature engineering expert for ML/CTR prediction. Given this feature profile, propose the top 3 transformations that will most improve predictive signal.
 
 Feature Profile:
@@ -31,18 +32,15 @@ Respond ONLY with a valid JSON array, no markdown, no code blocks. Example:
 [{{"name": "log1p", "type": "log1p", "rationale": "...", "expected_signal_direction": "positive"}}]"""
 
     try:
-        response = model.generate_content(prompt)
-        text = response.text.strip()
-        # Strip markdown if present
-        text = re.sub(r'^```json\s*', '', text)
-        text = re.sub(r'^```\s*', '', text)
-        text = re.sub(r'\s*```$', '', text)
+        text = _generate(prompt)
+        text = re.sub(r'^```json\s*', '', text, flags=re.MULTILINE)
+        text = re.sub(r'^```\s*', '', text, flags=re.MULTILINE)
+        text = re.sub(r'\s*```$', '', text, flags=re.MULTILINE)
         transformations = json.loads(text)
         if isinstance(transformations, list):
             return transformations[:3]
         return []
-    except Exception as e:
-        # Fallback transformations based on dtype
+    except Exception:
         dtype = feature_profile.get("dtype", "")
         if "float" in dtype or "int" in dtype:
             return [
@@ -57,7 +55,6 @@ Respond ONLY with a valid JSON array, no markdown, no code blocks. Example:
             ]
 
 def explain_decision(decision: str, evidence: dict) -> str:
-    model = _get_model()
     prompt = f"""You are explaining a feature engineering decision to a data scientist.
 
 Decision: {decision.upper()}
@@ -67,8 +64,7 @@ Evidence metrics:
 Write 2-4 sentences explaining why this feature was {decision}. Be specific about the metrics. Mention the threshold (2% improvement required). Use **bold** for key terms and numbers."""
 
     try:
-        response = model.generate_content(prompt)
-        return response.text.strip()
+        return _generate(prompt)
     except Exception:
         if decision == "keep":
             mi_pct = evidence.get("mi_pct_change", 0)
